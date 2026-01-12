@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { InventoryItem } from '../types';
 import { Package, Search, Plus, Trash2, AlertTriangle, ArrowDown, ArrowUp, BellRing, Edit, Save, X, FileText, Copy, Check } from 'lucide-react';
+// 1. IMPORTAMOS O SERVIÇO DE NOTIFICAÇÃO (Subimos uma pasta com ../)
+import { enviarNotificacao } from '../services/telegramService';
 
 interface InventoryManagerProps {
   inventory: InventoryItem[];
@@ -93,7 +95,6 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({ inventory, onAddIte
     }
 
     text += `📦 *LISTA GERAL*\n`;
-    // Sort by name
     const sortedInventory = [...inventory].sort((a, b) => a.name.localeCompare(b.name));
     
     sortedInventory.forEach(i => {
@@ -139,10 +140,25 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({ inventory, onAddIte
     setFormData({ name: '', category: '', quantity: 0, minQuantity: 0, unit: 'un' });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // --- AQUI ESTÁ A MÁGICA DA NOTIFICAÇÃO ---
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name) return;
     
+    // 1. Verifica se o estoque está baixo ou crítico
+    if (formData.quantity <= formData.minQuantity) {
+      // Monta a mensagem bonita
+      const msg = `⚠️ *ALERTA DE ESTOQUE BAIXO*\n\n` +
+                  `📦 *Material:* ${formData.name}\n` +
+                  `📉 *Qtd Atual:* ${formData.quantity} ${formData.unit}\n` +
+                  `🛑 *Mínimo:* ${formData.minQuantity} ${formData.unit}\n\n` +
+                  `Ação recomendada: Fazer pedido de compra.`;
+      
+      // Envia para o Telegram (sem travar o app)
+      enviarNotificacao(msg).catch(err => console.error("Falha silenciosa no telegram", err));
+    }
+
+    // 2. Continua o fluxo normal do app (Salvar no React)
     if (editingId) {
       onUpdateItem({ ...formData, id: editingId });
     } else {
@@ -416,30 +432,30 @@ const InventoryManager: React.FC<InventoryManagerProps> = ({ inventory, onAddIte
                         </div>
                       </td>
                       <td className="p-4 text-right">
-                         <div className="flex items-center justify-end gap-2">
-                           <button 
-                             onClick={() => handleEditClick(item)}
-                             className={`p-2 rounded-lg transition-colors ${
-                               isLowStock
-                                 ? 'text-red-500 hover:bg-red-200'
-                                 : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50'
-                             }`}
-                             title="Editar Estoque"
-                           >
-                             <Edit size={16} />
-                           </button>
-                           <button 
-                             onClick={() => onDeleteItem(item.id)}
-                             className={`p-2 rounded-lg transition-colors ${
-                               isLowStock 
-                                 ? 'text-red-400 hover:text-red-700 hover:bg-red-200' 
-                                 : 'text-slate-400 hover:text-red-600 hover:bg-red-50'
-                             }`}
-                             title="Excluir Item"
-                           >
-                             <Trash2 size={16} />
-                           </button>
-                         </div>
+                          <div className="flex items-center justify-end gap-2">
+                            <button 
+                              onClick={() => handleEditClick(item)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                isLowStock
+                                  ? 'text-red-500 hover:bg-red-200'
+                                  : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50'
+                              }`}
+                              title="Editar Estoque"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button 
+                              onClick={() => onDeleteItem(item.id)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                isLowStock 
+                                  ? 'text-red-400 hover:text-red-700 hover:bg-red-200' 
+                                  : 'text-slate-400 hover:text-red-600 hover:bg-red-50'
+                              }`}
+                              title="Excluir Item"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                       </td>
                     </tr>
                   );
