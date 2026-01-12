@@ -8,6 +8,20 @@ import ClientManager from './components/ClientManager';
 import InventoryManager from './components/InventoryManager';
 import CalendarManager from './components/CalendarManager';
 import { LayoutDashboard, Users, FileText, Settings, ChevronLeft, ChevronRight, Menu, X, Package, Calendar as CalendarIcon } from 'lucide-react';
+import { enviarNotificacao } from '../services/telegramService';
+
+function BotaoSalvar() {
+  
+  const handleSave = () => {
+    // Lógica de salvar no banco...
+    // ...
+    
+    // Envia o alerta
+    enviarNotificacao("🛠️ *Novo serviço salvo!* O cliente João aprovou o orçamento.");
+  };
+
+  return <button onClick={handleSave}>Salvar Serviço</button>;
+}
 
 // MOCK DATA
 const INITIAL_CLIENTS: Client[] = [
