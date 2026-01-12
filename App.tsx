@@ -8,7 +8,7 @@ import ClientManager from './components/ClientManager';
 import InventoryManager from './components/InventoryManager';
 import CalendarManager from './components/CalendarManager';
 import { LayoutDashboard, Users, FileText, Settings, ChevronLeft, ChevronRight, Menu, X, Package, Calendar as CalendarIcon } from 'lucide-react';
-import { enviarNotificacao } from '../services/telegramService';
+import { enviarNotificacao } from './services/telegramService';
 
 function BotaoSalvar() {
   
